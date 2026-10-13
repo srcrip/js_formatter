@@ -32,6 +32,8 @@ defmodule JsFormatter.MixProject do
       licenses: ["MIT"],
       files: ["lib", "mix.exs", "README.md", "CHANGELOG.md", "LICENSE"],
       links: %{
+        "GitHub" => "https://github.com/srcrip/js_formatter",
+        "Changelog" => "https://github.com/srcrip/js_formatter/blob/main/CHANGELOG.md",
         "Biome" => "https://biomejs.dev/",
         "ESLint" => "https://eslint.org/",
         "Phoenix LiveView TagFormatter" =>
