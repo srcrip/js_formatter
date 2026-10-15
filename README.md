@@ -1,10 +1,11 @@
 # JsFormatter
 
-`JsFormatter` formats and lints JavaScript and TypeScript embedded in Phoenix
-LiveView colocated hooks and colocated JavaScript. It includes sensible command
-profiles for [Biome](https://biomejs.dev/) and
-[ESLint](https://eslint.org/), and custom profiles can run other compatible
-tools without adding an Elixir module.
+`JsFormatter` formats and, when supported by the selected tool, lints JavaScript
+and TypeScript embedded in Phoenix LiveView colocated hooks and colocated
+JavaScript. It includes sensible command profiles for
+[Biome](https://biomejs.dev/), [ESLint](https://eslint.org/), and
+[Prettier](https://prettier.io/). Custom profiles can run other compatible tools
+without adding an Elixir module.
 
 It operates on the source inside `.heex` files and `~H` sigils. It does not
 inspect LiveView's generated `phoenix-colocated` output.
@@ -24,7 +25,7 @@ it out of application runtime behavior:
 ```elixir
 def deps do
   [
-    {:js_formatter, "~> 0.1.0", only: [:dev, :test], runtime: false}
+    {:js_formatter, "~> 0.2.0", only: [:dev, :test], runtime: false}
   ]
 end
 ```
@@ -40,9 +41,11 @@ cd assets
 npm install --save-dev @biomejs/biome
 # or
 npm install --save-dev eslint
+# or
+npm install --save-dev --save-exact prettier
 ```
 
-`JsFormatter` does not bundle either executable or impose a JavaScript parser
+`JsFormatter` does not bundle these executables or impose a JavaScript parser
 or rule set. TypeScript support with ESLint therefore requires the consuming
 project's ESLint configuration to select an appropriate TypeScript parser.
 
@@ -80,6 +83,15 @@ config :js_formatter,
       Path.join(assets_directory, "eslint.config.mjs")
     ],
     cd: assets_directory
+  ],
+  prettier: [
+    command: "prettier",
+    args: [
+      "--write",
+      "--config",
+      Path.join(assets_directory, "prettier.config.mjs")
+    ],
+    cd: assets_directory
   ]
 ```
 
@@ -102,26 +114,28 @@ process, so it remains suitable for a development/test-only dependency with
 `runtime: false`.
 
 The complete profile definitions above make every command option visible, but
-`:biome` and `:eslint` are built in. When the tools can discover their normal
-project configuration, this smaller setup is equivalent:
+`:biome`, `:eslint`, and `:prettier` are built in. When the tools can discover
+their normal project configuration, this smaller setup is equivalent:
 
 ```elixir
 config :js_formatter,
   default_profile: :biome,
   biome: [cd: Path.expand("../assets", __DIR__)],
-  eslint: [cd: Path.expand("../assets", __DIR__)]
+  eslint: [cd: Path.expand("../assets", __DIR__)],
+  prettier: [cd: Path.expand("../assets", __DIR__)]
 ```
 
 The built-in Biome arguments are `biome check --write --colors=off
 --max-diagnostics=none`. The built-in ESLint arguments are `eslint --fix
---format stylish`. Supplying `:args` in a named profile replaces that built-in
-argument list.
+--format stylish`. The built-in Prettier arguments are `prettier --write`.
+Supplying `:args` in a named profile replaces that built-in argument list.
 
-Both profiles apply the fixes supported by the configured tool and fail
-`mix format` when errors remain. ESLint only changes layout when the project's
-ESLint rules or plugins provide formatting fixes. Warning diagnostics returned
-with a successful exit status are remapped to the original Elixir/HEEx source
-and written to standard error by default.
+Biome formats, lints, and applies safe assists. ESLint lints and applies the
+fixes supplied by the consuming project's rules and plugins. Prettier formats
+and reports parse or configuration errors, but it does not lint. Warning
+diagnostics returned by Biome or ESLint with a successful exit status are
+remapped to the original Elixir/HEEx source and written to standard error by
+default.
 
 ### Selecting and overriding profiles
 
@@ -139,7 +153,7 @@ override values for that formatter:
 
 Configuration precedence is:
 
-1. the built-in `:biome` or `:eslint` profile;
+1. the built-in `:biome`, `:eslint`, or `:prettier` profile;
 2. the selected named profile from `config :js_formatter`;
 3. overrides in `.formatter.exs` under `:js_formatter`.
 
@@ -283,8 +297,9 @@ For that reason the built-in Biome profile runs one `biome check --write`
 against an isolated real file. That single command applies formatting, safe
 lint fixes, and safe assist actions, then returns reliable diagnostics and a
 nonzero status for errors that remain. The built-in ESLint profile uses the
-equivalent `eslint --fix` file path, which keeps both tools on the same simple
-and testable lifecycle.
+equivalent `eslint --fix` file path, and the Prettier profile uses
+`prettier --write`. This keeps all three tools on the same simple and testable
+lifecycle.
 
 Temporary names include the OS process and a VM-monotonic unique value, so
 concurrent formatter processes do not share files. Creation is exclusive, the
@@ -307,5 +322,5 @@ or fails with `JsFormatter.Error` and remapped diagnostics.
 The [`demo`](demo/README.md) directory is a generated Phoenix application that
 uses this repository as a path dependency. It provides an end-to-end consumer
 fixture with real TypeScript and TSX examples and runs `mix format` against
-project-local, pinned Biome and ESLint installations. It is intentionally kept
-outside the published package files.
+project-local, pinned Biome, ESLint, and Prettier installations. It is
+intentionally kept outside the published package files.

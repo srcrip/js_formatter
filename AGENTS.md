@@ -49,7 +49,8 @@
 
 ## Command behavior
 
-- Built-in `:biome` and `:eslint` profiles supply safe default commands.
+- Built-in `:biome`, `:eslint`, and `:prettier` profiles supply safe default
+  commands.
 - Invoke executables directly with argument lists. Do not accept or construct
   interpolated shell command strings.
 - Append the temporary source path as the final command argument.
@@ -80,6 +81,15 @@
   plugins.
 - TypeScript parsing depends on the consuming project's ESLint configuration
   and parser setup; do not bundle or silently impose a TypeScript ESLint stack.
+
+### Prettier
+
+- Use Prettier's real-file `--write` mode so project configuration and plugins
+  resolve from the isolated file path.
+- Prettier is a formatter, not a linter. Do not describe it as providing lint
+  rules, assists, or safe lint fixes.
+- Preserve parse and configuration failures as formatter errors with remapped
+  original source paths.
 
 ## Temporary-file invariants
 
@@ -134,6 +144,7 @@
 - Tests must cover, at minimum:
   - JavaScript and TypeScript formatting
   - safe Biome and ESLint fixes
+  - Prettier formatting and parse failures
   - genuine remaining lint failures
   - syntax errors
   - colocated hooks and colocated JavaScript
@@ -164,9 +175,10 @@ After implementation work:
 5. For dependency, metadata, or release changes, run `mix hex.build` and remove
    the generated tarball after validation.
 6. For formatter integration changes, install `demo/assets` dependencies and
-   run the demo's `mix precommit` plus `mix assets.build`. Verify both
-   `JS_FORMATTER_TOOL=biome mix format --check-formatted` and
-   `JS_FORMATTER_TOOL=eslint mix format --check-formatted`.
+   run the demo's `mix precommit` plus `mix assets.build`. Verify
+   `JS_FORMATTER_TOOL=biome mix format --check-formatted`,
+   `JS_FORMATTER_TOOL=eslint mix format --check-formatted`, and
+   `JS_FORMATTER_TOOL=prettier mix format --check-formatted`.
 
 If Mix cannot open its local PubSub socket because of sandbox restrictions,
 rerun the same command with the required permission rather than changing the

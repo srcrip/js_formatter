@@ -4,10 +4,10 @@ defmodule JsFormatter.MixProject do
   def project do
     [
       app: :js_formatter,
-      version: "0.1.0",
+      version: "0.2.0",
       elixir: "~> 1.15",
       description:
-        "Format and lint Phoenix LiveView colocated JavaScript and TypeScript with Biome or ESLint",
+        "Format and lint Phoenix LiveView colocated JavaScript and TypeScript with project tools",
       package: package(),
       deps: deps(),
       docs: [main: "readme", extras: ["README.md", "CHANGELOG.md"]]
@@ -36,6 +36,7 @@ defmodule JsFormatter.MixProject do
         "Changelog" => "https://github.com/srcrip/js_formatter/blob/main/CHANGELOG.md",
         "Biome" => "https://biomejs.dev/",
         "ESLint" => "https://eslint.org/",
+        "Prettier" => "https://prettier.io/",
         "Phoenix LiveView TagFormatter" =>
           "https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.HTMLFormatter.TagFormatter.html"
       }

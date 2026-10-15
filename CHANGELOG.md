@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+- Add a built-in Prettier profile for JavaScript, TypeScript, JSX, and TSX
+  formatting with parse and configuration error reporting.
+
 ## 0.1.0
 
 - Add a Phoenix LiveView tag formatter for colocated JavaScript and TypeScript.

@@ -16,7 +16,8 @@ defmodule JsFormatter.Config do
       command: "biome",
       args: ["check", "--write", "--colors=off", "--max-diagnostics=none"]
     ],
-    eslint: [command: "eslint", args: ["--fix", "--format", "stylish"]]
+    eslint: [command: "eslint", args: ["--fix", "--format", "stylish"]],
+    prettier: [command: "prettier", args: ["--write"]]
   ]
 
   @type t :: %__MODULE__{

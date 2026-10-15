@@ -63,6 +63,8 @@ defmodule JsFormatter.Diagnostic do
     basename_location = ~r/#{Regex.escape(Path.basename(temporary_path))}:(\d+):(\d+)/
 
     output
+    |> remap_prettier_location(temporary_path, context)
+    |> remap_prettier_location(Path.basename(temporary_path), context)
     |> remap_stylish_location(temporary_path, context)
     |> remap_stylish_location(Path.basename(temporary_path), context)
     |> then(fn output ->
@@ -77,6 +79,15 @@ defmodule JsFormatter.Diagnostic do
     end)
     |> String.replace(temporary_path, context.source_file)
     |> String.replace(Path.basename(temporary_path), Path.basename(context.source_file))
+  end
+
+  defp remap_prettier_location(output, path, context) do
+    location =
+      ~r/(\[error\]\s+)#{Regex.escape(path)}:\s+([^\r\n]*?)\s+\((\d+):(\d+)\)/
+
+    Regex.replace(location, output, fn _match, prefix, message, line, column ->
+      "#{prefix}#{mapped_location(context, line, column)}: #{message}"
+    end)
   end
 
   defp remap_stylish_location(output, path, context) do

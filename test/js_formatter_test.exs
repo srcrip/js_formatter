@@ -52,6 +52,10 @@ defmodule JsFormatterTest do
     assert eslint.command == "eslint"
     assert eslint.args == ["--fix", "--format", "stylish"]
 
+    assert {:ok, prettier} = Config.from_options([default_profile: :prettier], [])
+    assert prettier.command == "prettier"
+    assert prettier.args == ["--write"]
+
     assert {:error, message} = Config.from_options([default_profile: :custom], [])
     assert message =~ "unknown js_formatter profile :custom"
   end
@@ -141,6 +145,16 @@ defmodule JsFormatterTest do
                %{":type" => "Phoenix.LiveView.ColocatedJS", "extension" => "tsx"},
                "const view=<div>Hello</div>",
                context
+             )
+  end
+
+  test "formats TSX through the built-in Prettier profile", context do
+    assert {:ok, "const view = <div>Hello</div>;"} =
+             render(
+               %{":type" => "Phoenix.LiveView.ColocatedJS", "extension" => "tsx"},
+               "const view=<div>Hello</div>",
+               context,
+               profile: :prettier
              )
   end
 
@@ -269,6 +283,26 @@ defmodule JsFormatterTest do
         context
       )
     end
+  end
+
+  test "maps Prettier parse locations to the original source", context do
+    source_file = Path.join(context.working_directory, "prettier_error.ex")
+    content = "const PRETTIER_SYNTAX_ERROR = true\nconst value ="
+    write_source!(source_file, content)
+
+    error =
+      assert_raise Error, fn ->
+        render(
+          %{":type" => "ColocatedJS", "extension" => "ts"},
+          content,
+          context,
+          file: source_file,
+          profile: :prettier
+        )
+      end
+
+    assert error.message =~ "#{source_file}:6:14: SyntaxError: Expression expected."
+    refute error.message =~ "js_formatter_#{System.pid()}_"
   end
 
   test "reports a missing executable clearly", context do
@@ -449,6 +483,10 @@ defmodule JsFormatterTest do
         )
 
         System.halt(1)
+
+      String.contains?(source, "PRETTIER_SYNTAX_ERROR") ->
+        IO.puts(:stderr, "[error] \#{path}: SyntaxError: Expression expected. (2:14)")
+        System.halt(2)
 
       String.contains?(source, "SYNTAX_ERROR") ->
         IO.puts(:stderr, "\#{path}:1:7 parse error: expected an expression")
